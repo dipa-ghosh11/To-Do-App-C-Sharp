@@ -52,3 +52,4 @@ C:\Users\DIPA\OneDrive\Desktop\CAPSITECH\Projects\Task-6\Backend\obj\Debug\net9.
 C:\Users\DIPA\OneDrive\Desktop\CAPSITECH\Projects\Task-6\Backend\obj\Debug\net9.0\Backend.pdb
 C:\Users\DIPA\OneDrive\Desktop\CAPSITECH\Projects\Task-6\Backend\obj\Debug\net9.0\Backend.genruntimeconfig.cache
 C:\Users\DIPA\OneDrive\Desktop\CAPSITECH\Projects\Task-6\Backend\obj\Debug\net9.0\ref\Backend.dll
+C:\Users\DIPA\OneDrive\Desktop\CAPSITECH\Projects\Task-6\Backend\obj\Debug\net9.0\Backend.sourcelink.json

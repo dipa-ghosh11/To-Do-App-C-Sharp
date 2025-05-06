@@ -1,6 +1,7 @@
 using Backend.Models;
 using Backend.Services;
 using Backend.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +13,7 @@ namespace Backend.Controllers
     {
         private readonly TaskService _taskService=taskService;
 
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<List<TaskItem>>> GetAll()
         {

@@ -15,23 +15,52 @@ builder.Services.AddSingleton(sp =>
     var settings = builder.Configuration.GetSection("MongoDB").Get<DatabaseSettings>();
     return new TaskService(settings);
 });
-// Uncomment this when UserService is ready
-// builder.Services.AddSingleton(sp =>
-// {
-//     var settings = builder.Configuration.GetSection("MongoDB").Get<DatabaseSettings>();
-//     return new UserService(settings);
-// });
+
+builder.Services.AddSingleton(sp =>
+{
+    var settings = builder.Configuration.GetSection("MongoDB").Get<DatabaseSettings>();
+    return new ProjectService(settings);
+});
+
+builder.Services.AddSingleton(sp =>
+{
+    var settings = builder.Configuration.GetSection("MongoDB").Get<DatabaseSettings>();
+    return new UserService(settings);
+});
 
 // Add controllers
 builder.Services.AddControllers();
 
 // Authentication and Authorization
-builder.Services.AddAuthentication("CookieAuth")
-    .AddCookie("CookieAuth", options =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = context =>
+            {
+                context.HandleResponse(); // Prevents default behavior
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                var result = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    success = false,
+                    message = "Unauthorized"
+                });
+                return context.Response.WriteAsync(result);
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
