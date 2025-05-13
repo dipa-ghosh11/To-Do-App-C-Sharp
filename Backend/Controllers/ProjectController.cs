@@ -1,134 +1,172 @@
+using System.Linq;
 using Backend.Models;
 using Backend.Services;
 using Backend.Utils;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
-namespace Backend.Controllers
+namespace Backend.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public class ProjectController(ProjectService projectService) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProjectController(ProjectService projectService) : ControllerBase
+    private readonly ProjectService _projectService = projectService;
+
+    private string GetUserId() => User.FindFirst("id")?.Value!;
+
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<List<Project>>>> GetAll()
     {
-        private readonly ProjectService _projectService=projectService;
-
-        [HttpGet]
-        public async Task<ActionResult<List<Project>>> GetAll()
+        try
         {
-            try
+            var projects = await _projectService.GetAll();
+            return Ok(new ApiResponse<List<Project>>
             {
-                var projects = await _projectService.GetAll();
-                return Ok(new ApiResponse<List<Project>>
-                {
-                    Success = projects != null,
-                    Message = projects != null ? "projects fetched" : "projects not found",
-                    Data = projects
-                });
-            }
-            catch (System.Exception e)
-            {
-
-                return BadRequest(new ApiResponse<List<Project>>
-                {
-                    Success = false,
-                    Message = e.Message
-                });
-            }
-
+                Success = projects.Any(),
+                Message = projects.Any() ? "Projects fetched" : "No projects found",
+                Data = projects
+            });
         }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> GetById(string id)
+        catch (Exception e)
         {
-            try
+            return BadRequest(new ApiResponse<List<Project>>
             {
-                var Project = await _projectService.GetById(id);
-                return Ok(new ApiResponse<Project>
-                {
-                    Success = Project != null,
-                    Message = Project != null ? "Project fetched" : "Project not found",
-                    Data = Project
-                });
-            }
-            catch (Exception e)
+                Success = false,
+                Message = e.Message
+            });
+        }
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ApiResponse<Project>>> GetById(string id)
+    {
+        try
+        {
+            var project = await _projectService.GetById(id);
+            return Ok(new ApiResponse<Project>
+            {
+                Success = project != null,
+                Message = project != null ? "Project fetched" : "Project not found",
+                Data = project
+            });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new ApiResponse<Project>
+            {
+                Success = false,
+                Message = e.Message
+            });
+        }
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<Project>>> Add([FromBody] Project project)
+    {
+        try
+        {
+            if (project.AssignedUsers == null || !project.AssignedUsers.All(id => ObjectId.TryParse(id, out _)))
             {
                 return BadRequest(new ApiResponse<Project>
                 {
                     Success = false,
-                    Message = e.Message
+                    Message = "Invalid user IDs in assignedUsers"
                 });
             }
 
-        }
+            project.CreatedBy = GetUserId();
+            project.ProjectStatus = ProjectStatus.Pending;
+            project.IsDelete = false;
 
-        [HttpPost]
-        public async Task<ActionResult<Project>> Add(Project Project)
+            await _projectService.Add(project);
+
+            return Ok(new ApiResponse<Project>
+            {
+                Success = true,
+                Message = "Project added",
+                Data = project
+            });
+        }
+        catch (Exception e)
         {
-            try
+            return BadRequest(new ApiResponse<Project>
             {
-                await _projectService.Add(Project);
-                return Ok(new ApiResponse<Project>
-                {
-                    Success = true,
-                    Message = "Project added",
-                    Data = Project
-                });
-            }
-            catch (System.Exception e)
-            {
-                return BadRequest(new ApiResponse<Project>
-                {
-                    Success = false,
-                    Message = e.Message
-                });
-            }
-
+                Success = false,
+                Message = e.Message
+            });
         }
+    }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult> Update(string id, Project Project)
+    [HttpPut("{id}")]
+    public async Task<ActionResult<ApiResponse<Project>>> Update(string id, [FromBody] Project project)
+    {
+        try
         {
-            try
+            await _projectService.Update(id, project);
+            return Ok(new ApiResponse<Project>
             {
-                await _projectService.Update(id, Project);
-                return Ok(new ApiResponse<Project>
-                {
-                    Success = true,
-                    Message = "Project updated",
-                    Data = Project
-                });
-            }
-            catch (System.Exception e)
-            {
-                return BadRequest(new ApiResponse<Project>
-                {
-                    Success = false,
-                    Message = e.Message
-                });
-            }
+                Success = true,
+                Message = "Project updated",
+                Data = project
+            });
         }
-
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(string id)
+        catch (Exception e)
         {
-            try
+            return BadRequest(new ApiResponse<Project>
             {
-                await _projectService.Delete(id);
-                return Ok(new ApiResponse<Project>
-                {
-                    Success = true,
-                    Message = "Project deleted"
-                });
-            }
-            catch (System.Exception e)
-            {
-                return BadRequest(new ApiResponse<Project>
-                {
-                    Success = false,
-                    Message = e.Message
-                });
-            }
+                Success = false,
+                Message = e.Message
+            });
         }
+    }
 
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<ApiResponse<Project>>> Delete(string id)
+    {
+        try
+        {
+            await _projectService.Delete(id);
+            return Ok(new ApiResponse<Project>
+            {
+                Success = true,
+                Message = "Project deleted"
+            });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new ApiResponse<Project>
+            {
+                Success = false,
+                Message = e.Message
+            });
+        }
+    }
+
+    [HttpGet("user")]
+    public async Task<ActionResult<ApiResponse<List<Project>>>> GetProjectsByUser()
+    {
+        try
+        {
+            var userId = GetUserId();
+            var projects = await _projectService.GetByAssignedUser(userId);
+
+            return Ok(new ApiResponse<List<Project>>
+            {
+                Success = projects.Any(),
+                Message = projects.Any() ? "Projects fetched" : "Projects not found",
+                Data = projects
+            });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new ApiResponse<List<Project>>
+            {
+                Success = false,
+                Message = e.Message
+            });
+        }
     }
 }

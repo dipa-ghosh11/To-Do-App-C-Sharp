@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,6 +31,11 @@ builder.Services.AddSingleton(sp =>
 
 // Add controllers
 builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 // Authentication and Authorization
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

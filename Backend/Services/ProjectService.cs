@@ -27,4 +27,10 @@ public class ProjectService
 
     public async Task Delete(string id) =>
         await _projects.DeleteOneAsync(Project => Project.Id == id);
+
+    public async Task<List<Project>> GetByAssignedUser(string userId)
+    {
+        return await _projects.Find(p => p.AssignedUsers.Contains(userId)).ToListAsync();
+    }
+
 }

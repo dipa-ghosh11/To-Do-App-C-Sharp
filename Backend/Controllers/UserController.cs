@@ -113,7 +113,7 @@ namespace Backend.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Roles ="admin")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -137,7 +137,7 @@ namespace Backend.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Roles ="admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -161,7 +161,7 @@ namespace Backend.Controllers
             }
         }
 
-        // [Authorize]
+        [Authorize(Roles ="admin")]
         [HttpPost]
         public async Task<IActionResult> Add(User user)
         {
@@ -185,7 +185,7 @@ namespace Backend.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Roles="admin,user")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, User user)
         {

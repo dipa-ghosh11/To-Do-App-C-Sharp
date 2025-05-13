@@ -26,5 +26,10 @@ public class TaskService
 
     public async Task Delete(string id) =>
         await _taskItems.DeleteOneAsync(TaskItem => TaskItem.Id == id);
+
+    public async Task<List<TaskItem>> GetByAssignedUser(string userId)
+    {
+        return await _taskItems.Find(p => p.AssignedUsers.Contains(userId)).ToListAsync();
+    }
 }
 

@@ -60,7 +60,6 @@ namespace Backend.Controllers
                     Message = e.Message
                 });
             }
-
         }
 
         [HttpPost]
