@@ -34,6 +34,9 @@ const AdminDashboard = () => {
   });
 
   const { user, token } = useContext(AuthContext);
+  const parsedUser = typeof user === "string" ? JSON.parse(user) : user;
+  console.log(parsedUser.email);
+
 
   useEffect(() => {
     fetchProjects();
@@ -46,6 +49,7 @@ const AdminDashboard = () => {
       const response = await axios.get(`${import.meta.env.VITE_API}/api/User`, {headers: {Authorization: `Bearer ${token}`}});
       if (response.data.data) {
         setUsers(response.data.data);
+        // console.log(response.data.data)
       } else {
         toast.error("Error fetching users");
       }
@@ -307,7 +311,12 @@ const AdminDashboard = () => {
         projects={projects}
         selectedProject={selectedProject}
       />
-      <DashboardHeader title={`Welcome, ${user.fullName}`} />
+      <DashboardHeader title={`Welcome, ${parsedUser.fullName}`} />
+
+      
+      
+
+
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
