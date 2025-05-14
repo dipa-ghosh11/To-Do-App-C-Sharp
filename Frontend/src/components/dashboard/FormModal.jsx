@@ -63,7 +63,7 @@ const FormModal = ({
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   >
                     <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
+                    <option value="InProgress">In Progress</option>
                     <option value="Completed">Completed</option>
                   </select>
                 </div>
@@ -163,10 +163,10 @@ const FormModal = ({
                     if (type === "project") return true;
                     if (!formData.projectId) return false;
                     const project = projects.find(p => p._id === formData.projectId);
-                    return project && project.assignedUsers && project.assignedUsers.includes(user._id);
+                    return project && project.assignedUsers && project.assignedUsers.includes(user.id);
                   })
                   .map((user) => (
-                    <option key={user._id} value={user._id}>
+                    <option key={user.id} value={user.id}>
                       {user.fullName}
                     </option>
                   ))}

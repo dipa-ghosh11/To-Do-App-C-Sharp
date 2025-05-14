@@ -65,16 +65,18 @@ const AdminDashboard = () => {
         const filteredProjects = response.data.data.filter(project => !project.isDelete);
         setProjects(filteredProjects);
       } else {
+        
         toast.error("Error fetching projects");
       }
     } catch (error) {
+      console.log(error)
       toast.error("Error fetching projects");
     }
   };
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API}/api/Task`, { withCredentials: true });
+      const response = await axios.get(`${import.meta.env.VITE_API}/api/Task`, { headers: { Authorization: `Bearer ${token}` } });
       if (response.data.data) {
         const filteredTasks = response.data.data.filter(task => !task.isDelete);
         setTasks(filteredTasks);
@@ -96,20 +98,19 @@ const AdminDashboard = () => {
           startDate: formData.startDate,
           endDate: formData.endDate,
           assignedUsers: formData.assignedUsers,
-          isDelete: false
+          createdBy: parsedUser.id
         };
-        await axios.post("http://localhost:4000/api/project/createproject", projectData, { withCredentials: true });
+        await axios.post(`${import.meta.env.VITE_API}/api/Project`, projectData, { headers: { Authorization: `Bearer ${token}` } });
         fetchProjects();
       } else {
         const taskData = {
           taskTitle: formData.taskTitle,
           taskDescription: formData.taskDescription,
           taskStatus: formData.taskStatus,
-          startDate: formData.startDate,
-          endDate: formData.endDate,
+          startDate: "2025-05-14T09:03:09.015Z",
+          endDate: "2025-05-14T09:03:09.015Z",
           projectId: formData.projectId,
           assignedUsers: formData.assignedUsers,
-          isDelete: false
         };
         await axios.post("http://localhost:4000/api/task/createtask", taskData, { withCredentials: true });
         fetchTasks();
@@ -117,6 +118,7 @@ const AdminDashboard = () => {
       toast.success(`${modalType} created successfully`);
       handleCloseModal();
     } catch (error) {
+      console.log(error)
       toast.error(`Error creating ${modalType}`);
     }
   };
@@ -132,7 +134,7 @@ const AdminDashboard = () => {
           endDate: formData.endDate,
           assignedUsers: formData.assignedUsers
         };
-        await axios.put(`http://localhost:4000/api/project/updateproject/${editingItem._id}`, projectData, { withCredentials: true });
+        await axios.put(`${import.meta.env.VITE_API}/api/Project/${editingItem.id}`, projectData, { headers: { Authorization: `Bearer ${token}` } });
         fetchProjects();
       } else {
         const taskData = {
@@ -150,6 +152,7 @@ const AdminDashboard = () => {
       toast.success(`${modalType} updated successfully`);
       handleCloseModal();
     } catch (error) {
+      console.log(error)
       toast.error(`Error updating ${modalType}`);
     }
   };
