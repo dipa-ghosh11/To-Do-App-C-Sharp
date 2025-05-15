@@ -6,7 +6,6 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
     const { user, loading } = useContext(AuthContext);
     const location = useLocation();
 
-    
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-gray-900">
@@ -15,17 +14,15 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
         );
     }
 
-    
     if (!user) {
         return <Navigate to="/auth" state={{ from: location }} replace />;
     }
 
-    
-    if (allowedRoles.length > 0 && allowedRoles.includes(user.role)) {
-        return <Navigate to={user.role === "admin" ? "/admin" : "/user"} replace />;
+    // ✅ Only block if role is NOT allowed
+    if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
+        return <Navigate to="/" replace />;
     }
 
-   
     return element;
 };
 

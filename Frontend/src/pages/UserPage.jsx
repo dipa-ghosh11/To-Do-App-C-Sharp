@@ -10,7 +10,7 @@ const UserPage = () => {
   const { user } = useContext(AuthContext);
   const fetchProjects = async () => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/project/projectsByUser`, { withCredentials: true });
+      const response = await axios.get(`${import.meta.env.VITE_API}/api/Project/`, { headers: { Authorization: `Bearer ${token}` }});
       
       console.log(response);
       setProjects(response.data.projects);
@@ -29,7 +29,7 @@ const UserPage = () => {
       <Navbar name="Logout" path="/auth" logout={true} />
       <h1 className='text-center text-5xl p-8'>Welcome {user.fullName}</h1>
       <div className='flex justify-evenly'>
-        {projects.map(project=> <ProjectCard key={project._id} name={project.projectTitle} description={project.projectDescription} id={project._id} />)}
+        {projects.map(project=> <ProjectCard key={project.id} name={project.projectTitle} description={project.projectDescription} id={project.id} />)}
       </div>
     </div> 
   )

@@ -18,8 +18,8 @@ const Navbar = ({ name, path, logout }) => {
             //         navigate("/auth"); 
             //         toast.success("User logged out")
             //     })
-            localStorage.removeItem(user);
-            localStorage.removeItem(token);            
+            localStorage.removeItem("user");
+            localStorage.removeItem("token");            
         } catch (error) {
             console.log(error.response.data)
         }

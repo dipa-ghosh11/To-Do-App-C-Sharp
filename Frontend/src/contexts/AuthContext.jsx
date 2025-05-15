@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
                     //     localStorage.removeItem("user");
                     //     setUser(null);
                     // }
-                    setUser(storedUser)
+                    setUser(JSON.parse(storedUser))
                 }
             } catch (error) {
                 console.error("Auth verification failed:", error);
