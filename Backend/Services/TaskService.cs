@@ -21,8 +21,20 @@ public class TaskService
 
     public async Task Add(TaskItem TaskItem) => await _taskItems.InsertOneAsync(TaskItem);
 
-    public async Task Update(string id, TaskItem updatedTodo) =>
-        await _taskItems.ReplaceOneAsync(TaskItem => TaskItem.Id == id, updatedTodo);
+    public async Task Update(string id, TaskItem updatedTodo)
+    {
+        var filter = Builders<TaskItem>.Filter.Eq(t => t.Id, id);
+
+        var update = Builders<TaskItem>.Update
+            .Set(t => t.TaskTitle, updatedTodo.TaskTitle)
+            .Set(t => t.TaskDescription, updatedTodo.TaskDescription)
+            .Set(t => t.TaskStatus, updatedTodo.TaskStatus)
+            .Set(t => t.EndDate, updatedTodo.EndDate)
+            .Set(t => t.AssignedUsers, updatedTodo.AssignedUsers);
+
+        await _taskItems.UpdateOneAsync(filter, update);
+    }
+
 
     public async Task Delete(string id) =>
         await _taskItems.DeleteOneAsync(TaskItem => TaskItem.Id == id);

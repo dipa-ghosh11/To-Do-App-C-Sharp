@@ -66,7 +66,7 @@ const UserTable = ({ users, onToggleStatus }) => {
         </thead>
         <tbody className="divide-y divide-gray-100">
           {filteredUsers.map((user) => (
-            <tr key={user._id} className="hover:bg-gray-50 transition duration-200">
+            <tr key={user.id} className="hover:bg-gray-50 transition duration-200">
               <td className="px-6 py-4 font-medium text-gray-800">{user.fullName}</td>
               <td className="px-6 py-4 text-gray-600">{user.email}</td>
               <td className="px-6 py-4">
@@ -89,7 +89,7 @@ const UserTable = ({ users, onToggleStatus }) => {
               </td>
               <td className="px-6 py-4 text-right">
                 <button
-                  onClick={() => onToggleStatus(user._id, user.isActive)}
+                  onClick={() => onToggleStatus(user.id, user.isActive)}
                   className={`px-4 py-1.5 rounded-lg text-xs font-medium transition duration-200 ${user.isActive
                     ? 'bg-red-100 text-red-700 hover:bg-red-200'
                     : 'bg-green-100 text-green-700 hover:bg-green-200'

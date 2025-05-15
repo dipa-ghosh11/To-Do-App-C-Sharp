@@ -28,19 +28,19 @@ const ItemTable = ({ items, type, users, projects, onEdit, onDelete}) => {
   };
 
   const renderAssignedUsers = (assignedUsers) => {
-    if (!assignedUsers?.length) {
+    if (assignedUsers?.length==0) {
       return <span className="text-xs text-gray-400 italic">No users</span>;
     }
 
     return (
       <div className="flex flex-wrap gap-1">
         {assignedUsers.map((user) => {
-          const userData = user.fullName ? user : users.find(u => u._id === (typeof user === 'string' ? user : user._id));
+          const userData = user.fullName ? user : users.find(u => u.id === (typeof user === 'string' ? user : user.id));
           if (!userData) return null;
 
           return (
             <span
-              key={userData._id}
+              key={userData.id}
               className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full"
             >
               {userData.fullName}
@@ -84,7 +84,7 @@ const ItemTable = ({ items, type, users, projects, onEdit, onDelete}) => {
                 : null;
 
             return (
-              <tr key={item._id} className={`${bg} ${border} hover:bg-opacity-80 transition-all`}>
+              <tr key={item.id} className={`${bg} ${border} hover:bg-opacity-80 transition-all`}>
                 {/* Title */}
                 <td className="px-6 py-4">
                   <div className="font-medium text-gray-900">{title}</div>
@@ -120,7 +120,7 @@ const ItemTable = ({ items, type, users, projects, onEdit, onDelete}) => {
                     <FiEdit2 size={16} />
                   </button>
                   <button
-                    onClick={() => onDelete(item._id)}
+                    onClick={() => onDelete(item.id, type)}
                     className="text-red-600 hover:text-red-800 transition"
                     title="Delete"
                   >

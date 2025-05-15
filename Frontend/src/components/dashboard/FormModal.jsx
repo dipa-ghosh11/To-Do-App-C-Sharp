@@ -104,26 +104,27 @@ const FormModal = ({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Project</label>
-                  <select
-                    value={formData.projectId}
-                    onChange={(e) => {
-                      const project = projects.find(p => p._id === e.target.value);
-                      setFormData({ 
-                        ...formData, 
-                        projectId: e.target.value,
-                        assignedUsers: editingItem ? formData.assignedUsers : users
-                      });
-                    }}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    required
-                  >
-                    <option value="">Select a project</option>
-                    {projects.map((project) => (
-                      <option key={project._id} value={project._id}>
-                        {project.projectTitle}
-                      </option>
-                    ))}
-                  </select>
+                    <select
+                      value={formData.projectId}
+                      onChange={(e) => {
+                        const project = projects.find(p => p.id === e.target.value);
+                        setFormData({
+                          ...formData,
+                          projectId: project?.id || "", // fallback to "" to avoid undefined
+                          assignedUsers: editingItem ? formData.assignedUsers : users.map(u => u.id)
+                        });
+                      }}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      required
+                    >
+                      <option value="">Select a project</option>
+                      {projects.map((project) => (
+                        <option key={project.id} value={project.id}>
+                          {project.projectTitle}
+                        </option>
+                      ))}
+                    </select>
+
                 </div>
               </>
             )}
@@ -151,26 +152,20 @@ const FormModal = ({
               <label className="block text-sm font-medium text-gray-700">Assigned Users</label>
               <select
                 multiple
-                value={formData.assignedUsers || []}
+                value={formData.assignedUsers}
                 onChange={(e) => {
-                  const selectedUsers = Array.from(e.target.selectedOptions, option => option.value);
-                  setFormData({ ...formData, assignedUsers: selectedUsers });
+                  const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                  setFormData({ ...formData, assignedUsers: selected });
                 }}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                className="form-select w-full p-2 border border-gray-300 rounded"
               >
-                {users
-                  .filter(user => {
-                    if (type === "project") return true;
-                    if (!formData.projectId) return false;
-                    const project = projects.find(p => p._id === formData.projectId);
-                    return project && project.assignedUsers && project.assignedUsers.includes(user.id);
-                  })
-                  .map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.fullName}
-                    </option>
-                  ))}
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.fullName}
+                  </option>
+                ))}
               </select>
+
               <p className="mt-1 text-sm text-gray-500">Hold Ctrl/Cmd to select multiple users</p>
             </div>
           </div>

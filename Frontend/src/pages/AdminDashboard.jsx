@@ -35,11 +35,10 @@ const AdminDashboard = () => {
 
   const { user, token } = useContext(AuthContext);
   const parsedUser = typeof user === "string" ? JSON.parse(user) : user;
-  console.log(parsedUser.email);
 
 
   useEffect(() => {
-    fetchProjects();
+      fetchProjects();
     fetchTasks();
     fetchUsers();
   }, []);
@@ -100,6 +99,7 @@ const AdminDashboard = () => {
           assignedUsers: formData.assignedUsers,
           createdBy: parsedUser.id
         };
+        console.log(projectData);
         await axios.post(`${import.meta.env.VITE_API}/api/Project`, projectData, { headers: { Authorization: `Bearer ${token}` } });
         fetchProjects();
       } else {
@@ -107,12 +107,14 @@ const AdminDashboard = () => {
           taskTitle: formData.taskTitle,
           taskDescription: formData.taskDescription,
           taskStatus: formData.taskStatus,
-          startDate: "2025-05-14T09:03:09.015Z",
-          endDate: "2025-05-14T09:03:09.015Z",
+          startDate: formData.startDate,
+          endDate: formData.endDate,
           projectId: formData.projectId,
           assignedUsers: formData.assignedUsers,
+          createdBy: parsedUser.id
         };
-        await axios.post("http://localhost:4000/api/task/createtask", taskData, { withCredentials: true });
+        console.log("Submitting:", taskData);
+        await axios.post(`${import.meta.env.VITE_API}/api/Task`, taskData, { headers: { Authorization: `Bearer ${token}` } });
         fetchTasks();
       }
       toast.success(`${modalType} created successfully`);
@@ -132,8 +134,10 @@ const AdminDashboard = () => {
           projectStatus: formData.projectStatus,
           startDate: formData.startDate,
           endDate: formData.endDate,
-          assignedUsers: formData.assignedUsers
+          assignedUsers: formData.assignedUsers,
+          createdBy: parsedUser.id
         };
+        console.log(projectData);
         await axios.put(`${import.meta.env.VITE_API}/api/Project/${editingItem.id}`, projectData, { headers: { Authorization: `Bearer ${token}` } });
         fetchProjects();
       } else {
@@ -141,12 +145,12 @@ const AdminDashboard = () => {
           taskTitle: formData.taskTitle,
           taskDescription: formData.taskDescription,
           taskStatus: formData.taskStatus,
-          startDate: formData.startDate,
-          endDate: formData.endDate,
+          startDate: new Date(formData.startDate).toISOString(),
+          endDate: new Date(formData.endDate).toISOString(),
           projectId: formData.projectId,
           assignedUsers: formData.assignedUsers
         };
-        await axios.put(`http://localhost:4000/api/task/updatetask/${editingItem._id}`, taskData, { withCredentials: true });
+        await axios.put(`${import.meta.env.VITE_API}/api/Task/${editingItem.id}`, taskData, { headers: { Authorization: `Bearer ${token}` } });
         fetchTasks();
       }
       toast.success(`${modalType} updated successfully`);
@@ -161,10 +165,10 @@ const AdminDashboard = () => {
     if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
       try {
         if (type === "project") {
-          await axios.delete(`http://localhost:4000/api/project/delete/${id}`, { withCredentials: true });
+          await axios.delete(`${import.meta.env.VITE_API}/api/Project/${id}`, { headers: { Authorization: `Bearer ${token}` } });
           fetchProjects();
         } else {
-          await axios.delete(`http://localhost:4000/api/task/deletetask/${id}`, { withCredentials: true });
+          await axios.delete(`${ import.meta.env.VITE_API }/api/Task/${id}`, { headers: { Authorization: `Bearer ${token}` } });
           fetchTasks();
         }
         toast.success(`${type} deleted successfully`);
@@ -185,7 +189,7 @@ const AdminDashboard = () => {
           projectStatus: item.projectStatus,
           startDate: item.startDate?.split('T')[0] || "",
           endDate: item.endDate?.split('T')[0] || "",
-          assignedUsers: item.assignedUsers || []
+          assignedUsers: item.assignedUsers
         });
       } else {
         setFormData({
@@ -234,13 +238,29 @@ const AdminDashboard = () => {
 
   const handleToggleUserStatus = async (userId, currentStatus) => {
     try {
-      await axios.put(`http://localhost:4000/api/user/updateuser/${userId}`,
-        { isActive: !currentStatus },
-        { withCredentials: true }
-      );
+      // Fetch the full user object
+      const { data } = await axios.get(`${import.meta.env.VITE_API}/api/User/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const fullUser = data.data;
+
+      // Toggle the isActive status
+      const updatedUser = {
+        ...fullUser,
+        isActive: !currentStatus,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Send full user object
+      await axios.put(`${import.meta.env.VITE_API}/api/User/${userId}`, updatedUser, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
       fetchUsers();
       toast.success("User status updated successfully");
     } catch (error) {
+      console.log(error)
       toast.error("Error updating user status");
     }
   };
@@ -259,7 +279,7 @@ const AdminDashboard = () => {
     const matchStatus =
       statusFilter === 'all' ||
       (statusFilter === 'Completed' && project.projectStatus === 'Completed') ||
-      (statusFilter === 'In Progress' && project.projectStatus === 'In Progress') ||
+      (statusFilter === 'In Progress' && project.projectStatus === 'InProgress') ||
       (statusFilter === 'Pending' && project.projectStatus === 'Pending')
 
     return matchProject && matchStatus;
@@ -280,17 +300,17 @@ const AdminDashboard = () => {
     const matchTaskTitle = task.taskTitle.toLowerCase().includes(searchTerm);
 
     const matchAnyUser = task.assignedUsers?.some(user =>
-      user.fullName.toLowerCase().includes(searchTerm)
+      user?.fullName && user.fullName.toLowerCase().includes(searchTerm)
     );
 
     const matchTask = matchTaskTitle || matchAnyUser;
 
     const matchtaskStatus =
-      statusFilter === 'all' ||
-      (statusFilter === 'Done' && task.taskStatus == 'Done') ||
-      (statusFilter === 'In Progress' && task.taskStatus == 'In Progress') ||
-      (statusFilter === 'To Do' && task.taskStatus == 'To Do')
-
+      statustaskFilter === 'all' ||
+      (statustaskFilter === 'Done' && task.taskStatus === 'Done') ||
+      (statustaskFilter === 'In Progress' && task.taskStatus === 'In Progress') ||
+      (statustaskFilter === 'To Do' && task.taskStatus === 'To Do');
+  
     return matchTask && matchtaskStatus;
   }
   );
@@ -409,15 +429,15 @@ const AdminDashboard = () => {
                 onToggleStatus={handleToggleUserStatus}
               />
             ) : (
-              <ItemTable
+                <ItemTable
                   items={activeTab === "projects" ? filteredProjects : filteredTasks}
-                type={activeTab.slice(0, -1)}
-                users={users}
-                projects={projects}
-                tasks={tasks}
-                onEdit={(item) => handleOpenModal(activeTab.slice(0, -1), item)}
-                onDelete={(id) => handleDelete(id, activeTab.slice(0, -1))}
-              />
+                  type={activeTab.slice(0, -1)}
+                  users={users}
+                  projects={projects}
+                  onEdit={handleOpenModal}
+                  onDelete={handleDelete}
+                />
+
             )}
           </div>
         </div>

@@ -26,8 +26,24 @@ public class UserService
         await _users.InsertOneAsync(user);
     }
 
-    public async Task Update(string id, User updatedUser) =>
-        await _users.ReplaceOneAsync(user => user.Id == id, updatedUser);
+    public async Task Update(string id, User updatedUser){
+        var filter=Builders<User>.Filter.Eq(p=>p.Id,id);
+        var update = Builders<User>.Update
+       .Set(u => u.FullName, updatedUser.FullName)
+       .Set(u => u.Email, updatedUser.Email)
+       .Set(u => u.Role, updatedUser.Role)
+       .Set(u => u.IsActive, updatedUser.IsActive)
+       .Set(u => u.UpdatedAt, DateTime.UtcNow);
+
+        // Only update password if it's not null or whitespace
+        if (!string.IsNullOrWhiteSpace(updatedUser.Password))
+        {
+            updatedUser.HashPassword();
+            update = update.Set(u => u.Password, updatedUser.Password);
+        }
+
+        await _users.UpdateOneAsync(filter, update);
+    }
 
     public async Task Delete(string id) =>
         await _users.DeleteOneAsync(user => user.Id == id);

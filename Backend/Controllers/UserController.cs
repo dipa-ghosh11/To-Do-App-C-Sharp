@@ -231,5 +231,17 @@ namespace Backend.Controllers
                 });
             }
         }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            return Ok(new ApiResponse<string>
+            {
+                Success = true,
+                Message = "Logout successful"
+            });
+        }
+
     }
 }

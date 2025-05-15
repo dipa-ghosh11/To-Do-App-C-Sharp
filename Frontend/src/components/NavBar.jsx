@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 import { AuthContext } from '../contexts/AuthContext.jsx';
 import axios from 'axios';
@@ -10,12 +10,16 @@ const Navbar = ({ name, path, logout }) => {
     const handleLogout = async () => {
 
         try {
-            await axios.post("http://localhost:4000/api/user/logout", {}, { withCredentials: true })
-                .then(() => {
-                    localStorage.removeItem("user");
-                    setUser(null);
-                    toast.success("User logged out")
-                })
+            // await axios.post(`${import.meta.env.VITE_API}/api/User/logout`, {}, { headers: { Authorization: `Bearer ${token}` } })
+            //     .then(() => {
+            //         localStorage.removeItem("user");
+            //         setUser(null);
+            //         localStorage.removeItem("token");
+            //         navigate("/auth"); 
+            //         toast.success("User logged out")
+            //     })
+            localStorage.removeItem(user);
+            localStorage.removeItem(token);            
         } catch (error) {
             console.log(error.response.data)
         }
