@@ -13,31 +13,68 @@ namespace Backend.Controllers
     {
         private readonly TaskService _taskService=taskService;
 
+        // [Authorize]
+        // [HttpGet]
+        // public async Task<ActionResult<List<TaskItem>>> GetAll()
+        // {
+        //     try
+        //     {
+        //         var todos = await _taskService.GetAll();
+        //         return Ok(new ApiResponse<List<TaskItem>>
+        //         {
+        //             Success = todos != null,
+        //             Message = todos != null ? "Todos fetched" : "Todos not found",
+        //             Data = todos
+        //         });
+        //     }
+        //     catch (System.Exception e)
+        //     {
+
+        //         return BadRequest(new ApiResponse<List<TaskItem>>
+        //         {
+        //             Success = false,
+        //             Message = e.Message
+        //         });
+        //     }
+
+        // }
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<List<TaskItem>>> GetAll()
+        public async Task<ActionResult<PaginatedResponse<TaskItem>>> GetFilteredPaginated(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] string? status = null)
         {
             try
             {
-                var todos = await _taskService.GetAll();
-                return Ok(new ApiResponse<List<TaskItem>>
+                var filteredData = await _taskService.GetFilteredPaginated(page, pageSize, search, status);
+                var totalCount = await _taskService.GetFilteredCount(search, status);
+
+                return Ok(new PaginatedResponse<TaskItem>
                 {
-                    Success = todos != null,
-                    Message = todos != null ? "Todos fetched" : "Todos not found",
-                    Data = todos
+                    Success = true,
+                    Message = "Tasks fetched with filters and pagination",
+                    Data = filteredData,
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalCount = totalCount
                 });
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-
-                return BadRequest(new ApiResponse<List<TaskItem>>
+                return BadRequest(new PaginatedResponse<TaskItem>
                 {
                     Success = false,
-                    Message = e.Message
+                    Message = e.Message,
+                    Data = [],
+                    CurrentPage = page,
+                    PageSize = pageSize,
+                    TotalCount = 0
                 });
             }
-
         }
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskItem>> GetById(string id)

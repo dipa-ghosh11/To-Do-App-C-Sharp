@@ -15,7 +15,60 @@ public class TaskService
         _taskItems = database.GetCollection<TaskItem>(settings.TaskCollectionName);
     }
 
-    public async Task<List<TaskItem>> GetAll() => await _taskItems.Find(TaskItem => true).ToListAsync();
+    // public async Task<List<TaskItem>> GetAll() => await _taskItems.Find(TaskItem => true).ToListAsync();
+
+    public async Task<List<TaskItem>> GetFilteredPaginated(
+    int page = 1,
+    int pageSize = 10,
+    string? search = null,
+    string? status = null)
+    {
+        var filterBuilder = Builders<TaskItem>.Filter;
+        var filter = filterBuilder.Empty;
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            var searchFilter = filterBuilder.Or(
+                filterBuilder.Regex(t => t.TaskTitle, new MongoDB.Bson.BsonRegularExpression(search, "i")),
+                filterBuilder.Regex(t => t.TaskDescription, new MongoDB.Bson.BsonRegularExpression(search, "i"))
+            );
+            filter &= searchFilter;
+        }
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            filter &= filterBuilder.Eq(t => t.TaskStatus, status);
+        }
+
+        return await _taskItems
+            .Find(filter)
+            .Skip((page - 1) * pageSize)
+            .Limit(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<long> GetFilteredCount(string? search = null, string? status = null)
+    {
+        var filterBuilder = Builders<TaskItem>.Filter;
+        var filter = filterBuilder.Empty;
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            var searchFilter = filterBuilder.Or(
+                filterBuilder.Regex(t => t.TaskTitle, new MongoDB.Bson.BsonRegularExpression(search, "i")),
+                filterBuilder.Regex(t => t.TaskDescription, new MongoDB.Bson.BsonRegularExpression(search, "i"))
+            );
+            filter &= searchFilter;
+        }
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            filter &= filterBuilder.Eq(t => t.TaskStatus, status);
+        }
+
+        return await _taskItems.CountDocumentsAsync(filter);
+    }
+
 
     public async Task<TaskItem> GetById(string id) => await _taskItems.Find(TaskItem => TaskItem.Id == id).FirstOrDefaultAsync();
 

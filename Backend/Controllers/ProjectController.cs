@@ -17,28 +17,46 @@ public class ProjectController(ProjectService projectService) : ControllerBase
 
     private string GetUserId() => User.FindFirst("id")?.Value!;
 
+
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<Project>>>> GetAll()
+    public async Task<ActionResult<ApiResponse<object>>> GetAll(
+    [FromQuery] int page = 1,
+    [FromQuery] int size = 10,
+    [FromQuery] string? status = null,
+    [FromQuery] string? search = null)
     {
         try
         {
-            var projects = await _projectService.GetAll();
-            return Ok(new ApiResponse<List<Project>>
+            var projects = await _projectService.GetAll(page, size, status, search);
+            var totalCount = await _projectService.GetTotalCount(status, search);
+
+            return Ok(new ApiResponse<object>
             {
-                Success = projects.Any(),
+                Success = true,
                 Message = projects.Any() ? "Projects fetched" : "No projects found",
-                Data = projects
+                Data = new
+                {
+                    Projects = projects,
+                    Pagination = new
+                    {
+                        Page = page,
+                        PageSize = size,
+                        TotalCount = totalCount,
+                        TotalPages = (int)Math.Ceiling((double)totalCount / size)
+                    }
+                }
             });
         }
         catch (Exception e)
         {
-            return BadRequest(new ApiResponse<List<Project>>
+            return BadRequest(new ApiResponse<object>
             {
                 Success = false,
                 Message = e.Message
             });
         }
     }
+
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<Project>>> GetById(string id)

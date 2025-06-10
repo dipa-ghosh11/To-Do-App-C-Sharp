@@ -82,9 +82,9 @@ builder.Services.AddSwaggerGen(options =>
         Description = "A simple ASP.NET Core Web API for managing Todos",
         Contact = new OpenApiContact
         {
-            Name = "Biswarup Naha",
-            Email = "biswarupnaha@coding-junction.com",
-            Url = new Uri("https://www.github.com/biswarup-naha")
+            Name = "Dipa Ghosh",
+            Email = "dipaghosh0902@gmail.com",
+            Url = new Uri("https://www.github.com/dipa-ghosh11")
         }
     });
 });

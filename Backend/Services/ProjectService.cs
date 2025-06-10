@@ -16,7 +16,54 @@ public class ProjectService
     }
 
 
-    public async Task<List<Project>> GetAll() => await _projects.Find(Project => true).ToListAsync();
+    // public async Task<List<Project>> GetAll() => await _projects.Find(Project => true).ToListAsync();
+    public async Task<List<Project>> GetAll(int page, int size, string? status, string? search)
+    {
+        var filterBuilder = Builders<Project>.Filter;
+        var filter = filterBuilder.Empty;
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            filter &= filterBuilder.Eq(p => p.ProjectStatus, Enum.Parse<ProjectStatus>(status, true));
+        }
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            filter &= filterBuilder.Or(
+                filterBuilder.Regex(p => p.ProjectTitle, new MongoDB.Bson.BsonRegularExpression(search, "i")),
+                filterBuilder.Regex(p => p.ProjectDescription, new MongoDB.Bson.BsonRegularExpression(search, "i"))
+            );
+        }
+
+        return await _projects
+            .Find(filter)
+            .Skip((page - 1) * size)
+            .Limit(size)
+            .ToListAsync();
+    }
+
+    public async Task<long> GetTotalCount(string? status, string? search)
+    {
+        var filterBuilder = Builders<Project>.Filter;
+        var filter = filterBuilder.Empty;
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            filter &= filterBuilder.Eq(p => p.ProjectStatus, Enum.Parse<ProjectStatus>(status, true));
+        }
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            filter &= filterBuilder.Or(
+                filterBuilder.Regex(p => p.ProjectTitle, new MongoDB.Bson.BsonRegularExpression(search, "i")),
+                filterBuilder.Regex(p => p.ProjectDescription, new MongoDB.Bson.BsonRegularExpression(search, "i"))
+            );
+        }
+
+        return await _projects.CountDocumentsAsync(filter);
+    }
+
+
 
     public async Task<Project> GetById(string id) => await _projects.Find(Project => Project.Id == id).FirstOrDefaultAsync();
 
